@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Dashboard — Windows Workstation</title>
+    <meta http-equiv="refresh" content="5">
+    <style>
+        body {
+            background:#0b0f14;
+            color:#e5e7eb;
+            font-family: Arial, sans-serif;
+            padding:20px;
+        }
+
+        .header, .card, .panel {
+            background:#0f141b;
+            border:1px solid #1f2937;
+            border-radius:12px;
+            padding:20px;
+            margin-bottom:20px;
+        }
+
+        .header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .cards {
+            display:grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap:20px;
+        }
+
+        .number {
+            font-size:32px;
+            font-weight:bold;
+        }
+
+        .blue { color:#3b82f6; }
+        .red { color:#ef4444; }
+        .yellow { color:#facc15; }
+        .green { color:#22c55e; }
+
+        .layout {
+            display:grid;
+            grid-template-columns:320px 1fr;
+            gap:20px;
+        }
+
+        .circle {
+            width:180px;
+            height:180px;
+            border-radius:50%;
+            background: conic-gradient(
+                #ef4444 0 10%,
+                #facc15 10% 35%,
+                #22c55e 35% 100%
+            );
+            margin:30px auto;
+        }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th {
+            color:#94a3b8;
+            text-align:left;
+            font-size:13px;
+            letter-spacing:1px;
+        }
+
+        td {
+            padding:12px;
+            border-bottom:1px solid #1f2937;
+        }
+
+        .badge {
+            padding:5px 10px;
+            border-radius:20px;
+            font-weight:bold;
+            font-size:13px;
+        }
+
+        .INFO {
+            background:#052e16;
+            color:#22c55e;
+        }
+
+        .WARNING {
+            background:#422006;
+            color:#facc15;
+        }
+
+        .CRITICAL {
+            background:#450a0a;
+            color:#ef4444;
+        }
+
+        .source {
+            background:#1f2937;
+            padding:4px 8px;
+            border-radius:6px;
+            color:#cbd5e1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h2>🛡️ Security Dashboard — Windows Workstation</h2>
+        <span>🟢 Live · refreshes every 5s</span>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="number blue">{{ total }}</div>
+            <div>ALL EVENTS</div>
+        </div>
+
+        <div class="card">
+            <div class="number red">{{ critical }}</div>
+            <div>CRITICAL</div>
+        </div>
+
+        <div class="card">
+            <div class="number yellow">{{ warning }}</div>
+            <div>WARNING</div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div class="panel">
+            <h4>EVENTS BY LEVEL</h4>
+            <div class="circle"></div>
+
+            <p><span class="badge CRITICAL">Critical</span> {{ critical }} events</p>
+            <p><span class="badge WARNING">Warning</span> {{ warning }} events</p>
+            <p><span class="badge INFO">Info</span> {{ info }} events</p>
+        </div>
+
+        <div class="panel">
+            <div style="display:flex; justify-content:space-between;">
+    <h4>LATEST EVENTS</h4>
+    <span class="source">All Sources</span>
+</div>
+<div style="margin-bottom:10px;">
+    Filter:
+    <span class="badge INFO">All</span>
+    <span class="badge CRITICAL">Critical</span>
+    <span class="badge WARNING">Warning</span>
+    <span class="badge INFO">Info</span>
+</div>
+
+            <table>
+    <tr>
+        <th>TIME</th>
+        <th>SOURCE</th>
+        <th>LEVEL</th>
+        <th>MESSAGE</th>
+    </tr>
+
+    {% for level, message in logs %}
+    <tr>
+        <td>{{ message.split(" - ")[0] }}</td>
+        <td>
+            <span class="source">{{ message.split(" - ")[1] }}</span>
+        </td>
+        <td>
+            <span class="badge {{ level }}">{{ level }}</span>
+        </td>
+        <td>{{ message.split(" - ", 2)[2] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+        </div>
+    </div>
+
+</body>
+</html>
