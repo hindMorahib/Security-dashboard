@@ -1,27 +1,49 @@
 $db = "dashboard.db"
 
-# créer la base + table si elle n'existe pas
-sqlite3 $db "CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY AUTOINCREMENT, level TEXT, message TEXT);"
+$logsToRead = @(
+    "System",
+    "Application",
+    "Security"
+)
+
+$lastTime = (Get-Date).AddMinutes(-5)
 
 while ($true) {
-    $events = Get-WinEvent -LogName System -MaxEvents 10
+    foreach ($logName in $logsToRead) {
+        $events = Get-WinEvent -FilterHashtable @{
+            LogName = $logName
+            StartTime = $lastTime
+        } -ErrorAction SilentlyContinue
 
-    foreach ($event in $events) {
-        $level = "INFO"
+        foreach ($event in $events) {
+            $level = "INFO"
 
-        if ($event.LevelDisplayName -eq "Error") {
-            $level = "CRITICAL"
+            if ($event.Level -eq 1) {
+                $level = "CRITICAL"
+            }
+            elseif ($event.Level -eq 2) {
+                $level = "CRITICAL"
+            }
+            elseif ($event.Level -eq 3) {
+                $level = "WARNING"
+            }
+
+            $time = $event.TimeCreated.ToString("dd/MM/yyyy HH:mm:ss")
+            $source = $event.ProviderName
+            $msg = $event.Message
+
+            if ($null -eq $msg) {
+                $msg = ""
+            }
+
+            $msg = $msg.Replace("'", " ")
+
+            sqlite3 $db "INSERT INTO logs (time, source, level, message) VALUES ('$time', '$source', '$level', '$msg');"
+
+            Write-Host "[$level] $time - $source - $msg"
         }
-        elseif ($event.LevelDisplayName -eq "Warning") {
-            $level = "WARNING"
-        }
-
-        $message = $event.TimeCreated.ToString() + " - " + $event.ProviderName + " - " + $event.Message.Replace("'", " ")
-
-        sqlite3 $db "INSERT INTO logs (level, message) VALUES ('$level', '$message');"
-
-        Write-Host "[$level] $message"
     }
 
+    $lastTime = Get-Date
     Start-Sleep -Seconds 5
 }
